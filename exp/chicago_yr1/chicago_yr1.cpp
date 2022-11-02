@@ -20,7 +20,7 @@ vector<vector<double>> transpose2dVector( vector<vector<double>> vec2d ) {
     return tvec2d;
 }
 
-vector<Node*> initialize_1node() {
+vector<Node*> initialize_1node(double Kasymp_prop) {
     vector<Node*> nodes;
     int N = 2500000;
     vector<double> Ki; // S -> E transition rate
@@ -35,8 +35,9 @@ vector<Node*> initialize_1node() {
         {98, 0.07   },
         {129, 0.11  },
         {163, 0.11  },
-        {217, 0.13  },
-        {237, 0.198 },
+        {194, 0.14  },
+        {217, 0.19  },
+        {237, 0.19  },
         {272, 0.115 },
         {311, 0.117 },
         {342, 0.1156},
@@ -47,8 +48,9 @@ vector<Node*> initialize_1node() {
     Ki = stepwiseTimeSeries(Ki_ap);
     //Ki = linInterpolateTimeSeries(Ki_ap);
 
-    double Kasymp= 0.4066/3.677037; // E -> I (asymp) rate
-    double Kpres = 0.5934/3.677037; // E -> I (symp) rate
+    // double Kasymp= 0.4066/3.677037; // E -> I (asymp) rate
+    double Kasymp= Kasymp_prop/3.677037; // E -> I (asymp) rate
+    double Kpres = (1 - Kasymp_prop)/3.677037; // E -> I (symp) rate
     double Kmild = 0.921/3.409656;
     double Kseve = 0.079/3.409656;
     double Khosp = 1.0/4.076704;
@@ -92,6 +94,8 @@ vector<Node*> initialize_1node() {
         {78, 0.28328    },
         {109, 0.181298  },
         {139, 0.098412  },
+        {150, 0.18      },
+        {400, 0.18      },
         {170, 0.068856  },
         {201, 0.126608  },
         {231, 0.163615  },
@@ -160,11 +164,11 @@ vector<Node*> initialize_1node() {
     return(nodes);
 }
 
-void runsim (int serial) {
+void runsim (int serial, double Kasymp_prop) {
     cout << "Running Sim " << to_string(serial) << endl;
 
     vector<string> out_buffer;
-    vector<Node*> nodes = initialize_1node();
+    vector<Node*> nodes = initialize_1node(Kasymp_prop);
     vector<vector<double>> infection_matrix;
     for(int i = 0; i < 1; i++) {
         vector<double> inf_prob;
@@ -178,7 +182,7 @@ void runsim (int serial) {
     sim.rand_infect(10, nodes[0]);//*2
     out_buffer = sim.run_simulation(371, false);
 
-    string out_fname = "/projects/b1139/covid-age-output/chicago_1yr/daily_output." + to_string(serial);
+    string out_fname = "/home/fadikar/work/projects/common_random_numbers_emu/covid_age/output/daily_output." + to_string(serial) + "." + to_string(Kasymp_prop);
     write_buffer(out_buffer, out_fname, true);
 
     return;
@@ -186,8 +190,9 @@ void runsim (int serial) {
 
 int main(int argc, char* argv[]) { 
     int serial = std::stoi(argv[1]);
+    double Kasymp_prop = std::stod(argv[2]);
 
-    runsim(serial);
+    runsim(serial, Kasymp_prop);
 
     return 0;
 }
