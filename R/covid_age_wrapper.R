@@ -1,4 +1,5 @@
 library(data.table)
+library(jsonlite)
 
 run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
   
@@ -7,22 +8,8 @@ run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
   
   if(!is.null(par_list)){
     ## parse parameter list
-    npar <- length(par_list)
-    
-    par_names <- names(par_list)
-    par_vals <- unlist(par_list)
-    
-    ## lay out name:val for system command
-    input_char <- rep(NA, npar)
-    for (ii in 1:npar){
-      if(par_names[ii] %in% c("output_directory", "output_filename")){
-        input_char[ii] <- paste0('"', par_names[ii], '"', ':"' , par_vals[ii], '"')
-      } else {
-        input_char[ii] <- paste0('"', par_names[ii], '"', ":" , par_vals[ii])
-      }
-    }
-    input_str <- paste(input_char, collapse = ",")
-    input_str <- paste0("'{", input_str , "}'")
+    alt_input_str <- paste0("'", toJSON(par_list, auto_unbox = TRUE, 
+                                        digits = NA), "'")
     
     ## check if output_file and output_directory are present
     if("output_directory" %in% par_names){
@@ -40,7 +27,7 @@ run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
     }
   }
   
-  x <- paste(covid_model, input_str)
+  x <- paste(covid_model, alt_input_str)
   # cat(x)
   system(x)
   # cat(out_file)
