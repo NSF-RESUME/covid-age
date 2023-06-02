@@ -38,7 +38,23 @@ run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
   return(dt)
 }
 
+
+# Example of running covid-age simulation with Ki_ap input.
+#
+# Ki_ap is a step function like time series and 
+# should be passed as a matrix to the input par_list.
+# The first column of the Ki_ap matrix contains the time indices where 
+# the jump occurs in the step function and the second column should have 
+# the corresponding transmissibility values. In the example below, 
+# Ki_ap time series has value 1 between time 0 and 27, 0.7 between 28 and 59, 
+# 1 between 60 and simulation end time.
+#
+#
 # covid_model <- "/home/afadikar/work/projects/git/covid-age/exp/chicago_yr1/model"
 # par_list <- list("random_seed" = 23,
-#                  "ini_Ki" = 1.5)
+#                  "ini_Ki" = 0.97,
+#                  "Ki_ap" = rbind(c(0, 1), c(28, 0.7), c(60, 1)),
+#                  "output_directory" = "/home/afadikar/temp",
+#                  "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+#                  "duration" = 100)
 # run_covid_age(covid_model, par_list)
