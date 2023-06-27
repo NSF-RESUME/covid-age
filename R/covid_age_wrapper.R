@@ -11,6 +11,8 @@ run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
     alt_input_str <- paste0("'", toJSON(par_list, auto_unbox = TRUE, 
                                         digits = NA), "'")
     
+    par_names <- names(par_list)
+    
     ## check if output_file and output_directory are present
     if("output_directory" %in% par_names){
       if("output_filename" %in% par_names){
@@ -50,6 +52,7 @@ run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
 # 1 between 60 and simulation end time.
 #
 #
+
 # covid_model <- "/home/afadikar/work/projects/git/covid-age/exp/chicago_yr1/model"
 # par_list <- list("random_seed" = 23,
 #                  "ini_Ki" = 0.97,
