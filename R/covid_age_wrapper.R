@@ -5,6 +5,16 @@ run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
   
   ## covid_model: full path to the executable
   ## par_list: a named list that will be passed to the simulation
+  ##            "random_seed": integer
+  ##            "output_directory": string
+  ##            "output_filename": string
+  ##            "nmrtr_Kasymp": value between 0, 1
+  ##            "nmrtr_Kmild": value between 0, 1
+  ##            "ini_Ki": value close to 1
+  ##            "frac_infectiousness_As": value between 0, 1
+  ##            "frac_infectiousness_det": value between 0, 1
+  ##            "duration": integer
+  ##            "Ki_ap": matrix
   
   if(!is.null(par_list)){
     ## parse parameter list
