@@ -182,11 +182,23 @@ void runsim (const nlohmann::json& params) {
     }
 
     Event_Driven_NUCOVID sim(nodes, infection_matrix);
-    sim.rng.seed(params["random_seed"]);
+
+    std::map<int, int> seeds;
+    auto data = params["random_seeds"];
+    for (auto d : data) {
+        seeds.emplace(d[0], d[1]);
+    }
+    auto iter = seeds.find(0);
+    if (iter == seeds.end()) {
+        std::cout << "Aborting. Please provide an initial time 0 random seed" << std::endl;
+        return;
+    }
+    // std::cout << "Setting seed to " << iter->second << std::endl;
+    sim.rng.seed(iter->second);
     sim.Now = 9;
     sim.rand_infect(10, nodes[0]);//*2
     double duration = params["duration"].get<double>();
-    out_buffer = sim.run_simulation(duration, false);
+    out_buffer = sim.run_simulation(duration, seeds, false);
 
     string out_fname = params["output_directory"].get<string>()+ "/" +
         params["output_filename"].get<string>();
@@ -217,7 +229,6 @@ void load_default_params(nlohmann::json& params) {
     // DEFAULT PARAMETERS
     params["output_directory"] = "./";
     params["output_filename"] = "daily_output.txt";
-    params["random_seed"] = 42;
     params["nmrtr_Kasymp"] = 0.4066;
     params["nmrtr_Kmild"] = 0.921;
     params["ini_Ki"] = 1.0522;
@@ -242,6 +253,7 @@ void load_default_params(nlohmann::json& params) {
         {368, 0.1223},
         {400, 0.1223}
     };
+    params["random_seeds"] = {{0, 42}};
 }
 
 int main(int argc, char* argv[]) { 

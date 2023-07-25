@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <queue>
+#include <map>
 #include "Utility.h"
 #include <climits>
 #include "sys/stat.h"
@@ -142,7 +143,7 @@ class Event_Driven_NUCOVID {
             reset();
         }
 
-        vector<string> run_simulation(double duration, bool print) {
+        vector<string> run_simulation(double duration, std::map<int, int> seeds, bool print) {
             double start_time = Now;
             int day = (int) Now - 1;
             vector<string> out_buffer;
@@ -153,6 +154,12 @@ class Event_Driven_NUCOVID {
             if (print) {cout << header << endl;}
             while (next_event() and Now < start_time + duration) {
                 if ((int) Now > day) {
+                    auto iter = seeds.find(day);
+                    if (iter != seeds.end()) {
+                        int seed = iter->second;
+                        // std::cout << "Updating seed at day " << day << " to " << seed << std::endl;
+                        rng.seed(seed);
+                    }
                     for (size_t i = 0; i < nodes.size(); i++) {
                         const Node* n = nodes[i];
                         stringstream ss;
