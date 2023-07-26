@@ -61,10 +61,13 @@ run_covid_age <- function(covid_model, par_list = NULL, delete_output = TRUE){
 # Ki_ap time series has value 1 between time 0 and 27, 0.7 between 28 and 59, 
 # 1 between 60 and simulation end time.
 #
-#
+# NEW FUNCTIONALITY: The model now allows to reset the random seed 
+# at any time during the simulation length. The parameter random_seeds 
+# has the same structure as Ki_ap. In the following example, the simulation begins
+# with the random seed set at 1, then on day 28 it is reset at 2 and on day 60 at 3.
 
 # covid_model <- "/home/afadikar/work/projects/git/covid-age/exp/chicago_yr1/model"
-# par_list <- list("random_seed" = 23,
+# par_list <- list("random_seeds" = rbind(c(0, 1), c(28, 2), c(60, 3)),
 #                  "ini_Ki" = 0.97,
 #                  "Ki_ap" = rbind(c(0, 1), c(28, 0.7), c(60, 1)),
 #                  "output_directory" = "/home/afadikar/temp",
