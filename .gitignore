@@ -3,3 +3,4 @@
 *.so
 exp/chicago_yr1/model
 exp/chicago_yr1/daily_output.txt
+scratch/

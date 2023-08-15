@@ -1,7 +1,7 @@
 #include <ostream>
 
 #include "Time_Series.h"
-#include "Event_Driven_NUCOVID.h"
+#include "NUCOVID_cereal.h"
 #include "json.hpp"
 
 vector<vector<double>> transpose2dVector( vector<vector<double>> vec2d ) {
@@ -33,8 +33,8 @@ void fill_ki_app(const nlohmann::json& params, vector<TimeSeriesAnchorPoint>& Ki
     }
 }
 
-vector<Node*> initialize_1node(const nlohmann::json& params) {
-    vector<Node*> nodes;
+vector<shared_ptr<Node>> initialize_1node(const nlohmann::json& params) {
+    vector<shared_ptr<Node>> nodes;
     int N = 2500000;
     vector<double> Ki; // S -> E transition rate
 
@@ -157,52 +157,91 @@ vector<Node*> initialize_1node(const nlohmann::json& params) {
     double frac_infectiousness_det = params["frac_infectiousness_det"];
     vector<double> time_to_detect = {1.904861, 7, 2};
 
-    Node* n1 = new  Node(0, N, Ki, Kasymp, Kpres, Kmild, Kseve, Khosp, Kcrit,
+    auto n1 = shared_ptr<Node>(new Node(0, N, Ki, Kasymp, Kpres, Kmild, Kseve, Khosp, Kcrit,
                          Kdeath, Krec, Pcrit, Pdeath, Pdetect,
-                         frac_infectiousness_As, frac_infectiousness_det, time_to_detect);
+                         frac_infectiousness_As, frac_infectiousness_det, time_to_detect));
     nodes.push_back(n1);
     return(nodes);
 }
 
+void checkpoint(const string& fname, Event_Driven_NUCOVID& sim) {
+    cout << "Checkpointing to " << fname  << endl;
+    ofstream file(fname, ios::binary);
+    cereal::BinaryOutputArchive oarchive( file );
+    oarchive(sim);
+}
+
+
 void runsim (const nlohmann::json& params) {
-    cout << "Running Sim"<< endl;
+    cout << "Running Sim" << endl;
     if (params["print_params"]) {
         for (auto& el : params.items()) {
             std::cout << el.key() << " : " << el.value() << std::endl;
         }
     }
 
-    vector<string> out_buffer;
-    vector<Node*> nodes = initialize_1node(params);
-    vector<vector<double>> infection_matrix;
-    for(int i = 0; i < 1; i++) {
-        vector<double> inf_prob;
-        inf_prob.push_back(1);
-        infection_matrix.push_back(inf_prob);
-    }
-
-    Event_Driven_NUCOVID sim(nodes, infection_matrix);
-
-    std::map<int, int> seeds;
+    std::map<double, int> seeds;
     auto data = params["random_seeds"];
     for (auto d : data) {
-        seeds.emplace(d[0], d[1]);
+        seeds.emplace(d[0].get<double>(), d[1]);
+        // std::cout << d[0] << ", " << d[1] << std::endl;
     }
-    auto iter = seeds.find(0);
-    if (iter == seeds.end()) {
-        std::cout << "Aborting. Please provide an initial time 0 random seed" << std::endl;
-        return;
-    }
-    // std::cout << "Setting seed to " << iter->second << std::endl;
-    sim.rng.seed(iter->second);
-    sim.Now = 9;
-    sim.rand_infect(10, nodes[0]);//*2
-    double duration = params["duration"].get<double>();
-    out_buffer = sim.run_simulation(duration, seeds, false);
 
+    double duration = params["duration"].get<double>();
     string out_fname = params["output_directory"].get<string>()+ "/" +
-        params["output_filename"].get<string>();
-    write_buffer(out_buffer, out_fname, true);
+            params["output_filename"].get<string>();
+    vector<string> out_buffer;
+
+    auto restore_f = params["restore_from"];
+    if (restore_f != nullptr) {
+        cout << "Deserializing " << static_cast<string>(restore_f) << endl;
+        ifstream file(restore_f, ios::binary);
+        cereal::BinaryInputArchive iarchive(file);
+        Event_Driven_NUCOVID sim;
+        iarchive(sim);
+
+        auto restore_seed = params["restore_seed"];
+        if (restore_seed == nullptr) {
+            std::cout << "Aborting. Please provide a seed to use when restoring." << std::endl;
+            return;
+        }
+        sim.rng.seed(restore_seed);
+        out_buffer = sim.run_simulation(duration, seeds, false);
+        write_buffer(out_buffer, out_fname, true);
+
+        auto save_f = params["save_to"];
+        if (save_f != nullptr) {
+            checkpoint(save_f, sim);
+        }
+    } else {
+        // Start from scratch
+        vector<string> out_buffer;
+        vector<shared_ptr<Node>> nodes = initialize_1node(params);
+        vector<vector<double>> infection_matrix;
+        for(int i = 0; i < 1; i++) {
+            vector<double> inf_prob;
+            inf_prob.push_back(1);
+            infection_matrix.push_back(inf_prob);
+        }
+
+        Event_Driven_NUCOVID sim(nodes, infection_matrix);
+
+        auto iter = seeds.find(0);
+        if (iter == seeds.end()) {
+            std::cout << "Aborting. Please provide an initial time 0 random seed" << std::endl;
+            return;
+        }
+        sim.rng.seed(iter->second);
+        sim.Now = 9;
+        sim.rand_infect(10, nodes[0]);//*2
+        out_buffer = sim.run_simulation(duration, seeds, false);
+        write_buffer(out_buffer, out_fname, true);
+
+        auto save_f = params["save_to"];
+        if (save_f != nullptr) {
+            checkpoint(save_f, sim);
+        }
+    }
 
     return;
 }
@@ -254,7 +293,10 @@ void load_default_params(nlohmann::json& params) {
         {400, 0.1223}
     };
     params["random_seeds"] = {{0, 42}};
-}
+    params["save_to"] = nullptr;
+    params["restore_from"] = nullptr;
+    params["restore_seed"] = nullptr;
+} 
 
 int main(int argc, char* argv[]) { 
     if (argc > 2) {
