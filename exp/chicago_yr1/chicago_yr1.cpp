@@ -4,6 +4,14 @@
 #include "NUCOVID_cereal.h"
 #include "json.hpp"
 
+struct UserProvided {
+    bool kaysmp, kmild, frac_as, frac_det, ini_ki, ki_ap;
+
+    UserProvided() : kaysmp(false), kmild(false), frac_as(false), frac_det(false), 
+                     ini_ki(false), ki_ap(false) {}
+
+};
+
 vector<vector<double>> transpose2dVector( vector<vector<double>> vec2d ) {
     vector<vector<double>> tvec2d;
 
@@ -164,6 +172,17 @@ vector<shared_ptr<Node>> initialize_1node(const nlohmann::json& params) {
     return(nodes);
 }
 
+void update_node(shared_ptr<Node>& node, const nlohmann::json& params, UserProvided& upr) {
+    // if user supplied value, then update the existing node
+    vector<shared_ptr<Node>> nodes = initialize_1node(params);
+    shared_ptr<Node> new_node = nodes[0];
+    if (upr.kaysmp) node->Kasym = new_node->Kasym;
+    if (upr.kmild) node->Kmild = new_node->Kmild;
+    if (upr.frac_as) node->frac_infectiousness_As = new_node->frac_infectiousness_As;
+    if (upr.frac_det) node->frac_infectiousness_det = new_node->frac_infectiousness_det;
+    if (upr.ki_ap || upr.ini_ki) node->Ki = new_node->Ki;
+}
+
 void checkpoint(const string& fname, Event_Driven_NUCOVID& sim) {
     cout << "Checkpointing to " << fname  << endl;
     ofstream file(fname, ios::binary);
@@ -172,7 +191,7 @@ void checkpoint(const string& fname, Event_Driven_NUCOVID& sim) {
 }
 
 
-void runsim (const nlohmann::json& params) {
+void runsim (const nlohmann::json& params, UserProvided& upr) {
     cout << "Running Sim" << endl;
     if (params["print_params"]) {
         for (auto& el : params.items()) {
@@ -205,6 +224,8 @@ void runsim (const nlohmann::json& params) {
             std::cout << "Aborting. Please provide a seed to use when restoring." << std::endl;
             return;
         }
+
+        update_node(sim.nodes[0], params, upr);
         sim.rng.seed(restore_seed);
         out_buffer = sim.run_simulation(duration, seeds, false);
         write_buffer(out_buffer, out_fname, true);
@@ -250,8 +271,15 @@ void usage() {
     std::cerr << "usage: model [json map formatted parameters]" << std::endl;
 }
 
-int parse_params(nlohmann::json& params, const std::string& cl_params) {
+int parse_params(nlohmann::json& params, const std::string& cl_params, UserProvided& upr) {
     nlohmann::json j2 = nlohmann::json::parse(cl_params);
+    upr.kaysmp = j2.contains("nmrtr_Kasymp");
+    upr.kmild = j2.contains("nmrtr_Kmild");
+    upr.frac_as = j2.contains("frac_infectiousness_As");
+    upr.frac_det = j2.contains("frac_infectiousness_det");
+    upr.ini_ki = j2.contains("ini_Ki");
+    upr.ki_ap = j2.contains("Ki_app");
+
     for (auto& el : j2.items()) {
         string key = el.key();
         if (!params.contains(key)) {
@@ -304,12 +332,13 @@ int main(int argc, char* argv[]) {
         return -1;
     } else {
         nlohmann::json params;
+        UserProvided upr;
         load_default_params(params);
         if (argc == 2) {
-            int ret_val = parse_params(params, argv[1]);
+            int ret_val = parse_params(params, argv[1], upr);
             if (ret_val != 0) return -1;
         }
-        runsim(params);
+        runsim(params, upr);
     }
     return 0;
 }
