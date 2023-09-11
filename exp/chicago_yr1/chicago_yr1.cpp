@@ -219,14 +219,10 @@ void runsim (const nlohmann::json& params, UserProvided& upr) {
         Event_Driven_NUCOVID sim;
         iarchive(sim);
 
-        auto restore_seed = params["restore_seed"];
-        if (restore_seed == nullptr) {
-            std::cout << "Aborting. Please provide a seed to use when restoring." << std::endl;
-            return;
-        }
-
         update_node(sim.nodes[0], params, upr);
-        sim.rng.seed(restore_seed);
+        if (seeds.find(-1.0) != seeds.end()) {
+            sim.rng.seed(seeds[-1.0]);
+        }
         out_buffer = sim.run_simulation(duration, seeds, false);
         write_buffer(out_buffer, out_fname, true);
 
@@ -323,7 +319,6 @@ void load_default_params(nlohmann::json& params) {
     params["random_seeds"] = {{0, 42}};
     params["save_to"] = nullptr;
     params["restore_from"] = nullptr;
-    params["restore_seed"] = nullptr;
 } 
 
 int main(int argc, char* argv[]) { 

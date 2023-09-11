@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iomanip>
 #include <queue>
+#include <sstream>
 #include "Utility.h"
 #include <climits>
 #include <cmath>
@@ -142,6 +143,30 @@ class compTime {
             return (lhs.time>rhs.time);
         }
 };
+
+
+namespace cereal {
+
+// External serialization functions should be placed either
+// in the same namespace as the types they serialize or in the
+// cereal namespace so that the compiler can find them properly.
+
+template<class Archive>
+void save(Archive& archive, std::mt19937 const & rng) {
+    std::stringstream ss;
+    ss << rng;
+    archive(ss.str());
+}
+
+template<class Archive>
+void load(Archive& archive, std::mt19937 & rng) {
+    std::string s;
+    archive(s);
+    std::istringstream is(s);
+    is >> rng;
+}
+
+}
 
 class Event_Driven_NUCOVID {
     public:
@@ -527,6 +552,7 @@ class Event_Driven_NUCOVID {
         template<class Archive>
         void serialize(Archive & archive) {
             archive( nodes, infection_matrix, EventQ, Now );
+            archive(rng);
         }
 
 };
@@ -556,4 +582,5 @@ void write_buffer(vector<string>& buffer, string filename, bool overwrite) {
         exit(-842);
     }
 }
+
 #endif
