@@ -220,8 +220,8 @@ void runsim (const nlohmann::json& params, UserProvided& upr) {
         iarchive(sim);
 
         update_node(sim.nodes[0], params, upr);
-        if (seeds.find(-1.0) != seeds.end()) {
-            sim.rng.seed(seeds[-1.0]);
+        if (seeds.find(0.0) != seeds.end()) {
+            sim.rng.seed(seeds[0.0]);
         }
         out_buffer = sim.run_simulation(duration, seeds, false);
         write_buffer(out_buffer, out_fname, true);
