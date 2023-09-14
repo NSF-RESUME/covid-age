@@ -1,0 +1,123 @@
+---
+title: "covid-age-demo"
+output: html_document
+date: "2023-08-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This markdown provides a quick demo on how to set up and run `covid-age` simulation. The simulation code is written in `c++`. To compile, run the following commands 
+
+```{bash, eval=F}
+$ git clone git@github.com:NSF-RESUME/covid-age.git
+$ cd ./source
+$ make Utility.o
+$ cd ../exp/chicago_yr1/
+$ make model
+```
+
+This should produce an executable `model` in the `./exp/chicago_yr1/` directory. To run the model from command line
+
+```{bash, eval=F}
+$ ./model
+```
+
+#### Parameters
+
+The parameters and their types are listed below:
+
+* `output_directory` - string
+* `output_filename` - string
+* `nmtr_Kasymp` - float
+* `nmtr_Kmild` - float
+* `ini_Ki` - float
+* `frac_infectiousness_As` - float
+* `frac_infectiousness_det` - float
+* `duration` - integer
+* `print_params` - boolean
+* `Ki_ap` - json
+* `random_seeds` - json
+* `save_to` - string
+* `restore_from` - string
+* `restore_seed` - integer
+
+### Running simulation in R
+
+`covid_age_wrapper.R` provides an R function to run the simulation within an R session. The inputs are passed as a names list to the function with the same input parameter names as listed above. The json inputs are passed as a matrix, examples of which are provided below.
+
+```{r, fig.align='center'}
+source("../R/covid_age_wrapper.R")
+
+covid_model <- "/home/afadikar/work/projects/git/covid-age/exp/chicago_yr1/model"
+par_list <- list("random_seeds" = rbind(c(0, 1)),
+                 "ini_Ki" = 0.97,
+                 "Ki_ap" = rbind(c(0, 1), c(28, 0.7), c(50, 0.3), c(60, 1)),
+                 "output_directory" = "/home/afadikar/temp",
+                 "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+                 "duration" = 100)
+d <- run_covid_age(covid_model, par_list)
+
+knitr::kable(head(d))
+plot(d$time, d$E, type = "b")
+```
+
+#### Time varying parameters
+
+There are two time varying inputs to the model, `Ki_ap` and `random_seeds`. The values of these parameters are passed as a two-column matrix, where the first column contains the day indices where the value changes and the second column contains the values of the parameter. 
+
+```{r}
+Ki_ap = rbind(c(0, 1), c(28, 0.7), c(50, 0.3), c(60, 1))
+random_seeds = rbind(c(0, 1), c(28, 2), c(60, 3))
+
+Ki_ap
+random_seeds
+```
+
+#### Checkpointing
+
+To checkpoint a model, `save_to` parameter needs to be specified with full path of the checkpointed file. Similarly, to restore and simulate from a checkpointed model, `restore_from` should be used.
+
+```{r}
+## checkpoint after 50 days
+par_list <- list("random_seeds" = rbind(c(0, 1)),
+                 "ini_Ki" = 0.97,
+                 "Ki_ap" = rbind(c(0, 1), c(28, 0.7), c(50, 0.3), c(60, 1)),
+                 "output_directory" = "/home/afadikar/temp",
+                 "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+                 "duration" = 50,
+                 "save_to" = "/home/afadikar/temp/covid-age-checkpoint")
+d_before_checkpoint <- run_covid_age(covid_model, par_list)
+
+## resrote from checkpointed model
+par_list <- list("random_seeds" = rbind(c(0, 1)),
+                 "ini_Ki" = 0.97,
+                 "Ki_ap" = rbind(c(0, 1), c(28, 0.7), c(50, 0.3), c(60, 1)),
+                 "output_directory" = "/home/afadikar/temp",
+                 "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+                 "duration" = 50,
+                 "restore_from" = "/home/afadikar/temp/covid-age-checkpoint")
+d_after_checkpoint <- run_covid_age(covid_model, par_list)
+
+```
+
+Now check whether we get back the expected outcome from checkpointing.
+
+```{r, fig.align='center'}
+
+dt <- data.table(time = d$time, E = d$E)
+dt <- merge(dt, d_before_checkpoint[, .(time, E)], all.x = T, by = "time")
+colnames(dt)[2:3] <- c("full_run", "pre_check")
+
+dt <- merge(dt, d_after_checkpoint[, .(time, E)], all.x = T, by = "time")
+colnames(dt)[4] <- "post_check"
+
+rmarkdown::paged_table(dt)
+
+plot(dt$time, dt$full_run, col = 1, type = "l")
+points(dt$time, dt$pre_check, col = 2, pch = 1)
+points(dt$time, dt$post_check, col = 3, pch = 3)
+
+
+```
