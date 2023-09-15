@@ -220,8 +220,9 @@ void runsim (const nlohmann::json& params, UserProvided& upr) {
         iarchive(sim);
 
         update_node(sim.nodes[0], params, upr);
-        if (seeds.find(0.0) != seeds.end()) {
-            sim.rng.seed(seeds[0.0]);
+        auto seed = seeds[0.0];
+        if (seed != -1) {
+            sim.rng.seed(seed);
         }
         out_buffer = sim.run_simulation(duration, seeds, false);
         write_buffer(out_buffer, out_fname, true);
@@ -316,7 +317,9 @@ void load_default_params(nlohmann::json& params) {
         {368, 0.1223},
         {400, 0.1223}
     };
-    params["random_seeds"] = {{0, 42}};
+
+    random_device rd;
+    params["random_seeds"] = {{0, rd()}};
     params["save_to"] = nullptr;
     params["restore_from"] = nullptr;
 } 
