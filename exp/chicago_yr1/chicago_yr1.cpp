@@ -251,6 +251,7 @@ void runsim (const nlohmann::json& params, UserProvided& upr) {
         }
         sim.rng.seed(iter->second);
         sim.Now = 9;
+        duration -= sim.Now;
         sim.rand_infect(10, nodes[0]);//*2
         out_buffer = sim.run_simulation(duration, seeds, false);
         write_buffer(out_buffer, out_fname, true);
