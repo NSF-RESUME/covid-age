@@ -566,6 +566,7 @@ class Event_Driven_NUCOVID {
                 case CON:
                     {
                         CachedBitGenerator cbg(rng, 100);
+                        // std::cout << Now << ": " << rng() << std::endl;
                         // const int rand_contact = rand_uniform_int(0, event.target_node->N, &rng);
                         const int rand_contact = rand_uniform_int(0, event.target_node->N, &cbg);
                         if (rand_contact < event.target_node->state_counts[SUSCEPTIBLE]) {
