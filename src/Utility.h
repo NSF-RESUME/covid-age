@@ -79,10 +79,37 @@ vector<double> gen_trunc_exponential (double lambda, int min, int max);
 vector<double> gen_trunc_powerlaw (double alpha, double kappa, int min, int max);
 
 int rand_nonuniform_int (vector<double> dist, mt19937* rng);
-int rand_uniform_int (int min, int max, mt19937* rng);
-double rand_uniform (double min, double max, mt19937* rng);
-double rand_normal (double mean, double std_dev, mt19937* rng);
-double rand_exp (double lambda, mt19937* rng);
+
+// int rand_uniform_int (int min, int max, mt19937* rng);
+template<typename RNG_T>
+int rand_uniform_int (int min, int max, RNG_T* rng) {
+    // uniform integer on [min, max] (inclusive)
+    std::uniform_int_distribution<> dist(min, max);
+    return dist(*rng);
+}
+
+// double rand_uniform (double min, double max, mt19937* rng);
+template<typename RNG_T>
+double rand_uniform (double min, double max, RNG_T* rng) {
+    std::uniform_real_distribution<> dist(min, max);
+    return dist(*rng);
+}
+
+
+// double rand_normal (double mean, double std_dev, mt19937* rng);
+template<typename RNG_T>
+double rand_normal(double mean, double std_dev, RNG_T* rng) {
+    std::normal_distribution<> dist(mean, std_dev);
+    return dist(*rng);
+}
+
+// double rand_exp (double lambda, mt19937* rng);
+template<typename RNG_T>
+double rand_exp(double lambda, RNG_T* rng) {
+    std::uniform_real_distribution<> dist(0, 1);
+    return -log(dist(*rng)) / lambda; //TODO: could return inf if 0 happens to be returned
+}
+
 int rand_binomial (int n, double p, mt19937* rng);
 
 void rand_nchoosek(int n, vector<int>& sample, mt19937* rng);

@@ -119,28 +119,29 @@ int rand_nonuniform_int(vector<double> dist, std::mt19937* rng) {
 }
 
 
-int rand_uniform_int (int min, int max, std::mt19937* rng) {
-    // uniform integer on [min, max] (inclusive)
-    std::uniform_int_distribution<> dist(min, max);
-    return dist(*rng);
-}
+// template<typename RNG_T>
+// int rand_uniform_int (int min, int max, RNG_T* rng) {
+//     // uniform integer on [min, max] (inclusive)
+//     std::uniform_int_distribution<> dist(min, max);
+//     return dist(*rng);
+// }
 
    
-double rand_uniform (double min, double max, std::mt19937* rng) {
-    std::uniform_real_distribution<> dist(min, max);
-    return dist(*rng);
-}
+// double rand_uniform (double min, double max, std::mt19937* rng) {
+//     std::uniform_real_distribution<> dist(min, max);
+//     return dist(*rng);
+// }
 
-double rand_normal(double mean, double std_dev, std::mt19937* rng) {
-    std::normal_distribution<> dist(mean, std_dev);
-    return dist(*rng);
-}
+// double rand_normal(double mean, double std_dev, std::mt19937* rng) {
+//     std::normal_distribution<> dist(mean, std_dev);
+//     return dist(*rng);
+// }
 
 
-double rand_exp(double lambda, std::mt19937* rng) {
-    std::uniform_real_distribution<> dist(0, 1);
-    return -log(dist(*rng)) / lambda; //TODO: could return inf if 0 happens to be returned
-}
+// double rand_exp(double lambda, std::mt19937* rng) {
+//     std::uniform_real_distribution<> dist(0, 1);
+//     return -log(dist(*rng)) / lambda; //TODO: could return inf if 0 happens to be returned
+// }
 
 
 // Devroye's algorithm, as described by Kachitvichyanukul and Schmeiser (1988), 
