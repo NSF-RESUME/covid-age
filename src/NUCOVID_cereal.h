@@ -306,8 +306,10 @@ class Event_Driven_NUCOVID {
         }
 
         void rand_infect(int k, shared_ptr<Node> n) {   // randomly infect k people
+            // 100 produced the warning
+            CachedBitGenerator cbg(rng, 500);
             for (unsigned int i = 0; i < k; i++) {
-                infect(n, rng);
+                infect(n, cbg);
                 //import_As(n);
             }
             return;
