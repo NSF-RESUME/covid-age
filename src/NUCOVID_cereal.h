@@ -169,18 +169,21 @@ void load(Archive& archive, std::mt19937 & rng) {
 
 
 class CachedBitGenerator {
+    
     std::vector<mt19937::result_type> cache;
     size_t idx;
+    
 
-    public:
+public:
+    size_t calls;
 
-    CachedBitGenerator(mt19937& rng, size_t cache_size) : cache{}, idx{0} {
+    typedef mt19937::result_type result_type; 
+
+    CachedBitGenerator(mt19937& rng, size_t cache_size) : cache{}, idx{0}, calls{0} {
         for (size_t i = 0; i < cache_size; ++i) {
             cache.push_back(rng());
         }
     }
-
-    typedef mt19937::result_type result_type; 
 
     static constexpr result_type min() {
         return mt19937::min();
@@ -197,6 +200,7 @@ class CachedBitGenerator {
         }
         result_type val = cache[idx];
         ++idx;
+        ++calls;
         return val;
     }
 };
@@ -306,21 +310,21 @@ class Event_Driven_NUCOVID {
         }
 
         void rand_infect(int k, shared_ptr<Node> n) {   // randomly infect k people
-            // 100 produced the warning
-            CachedBitGenerator cbg(rng, 500);
             for (unsigned int i = 0; i < k; i++) {
+                CachedBitGenerator cbg(rng, 100);
                 infect(n, cbg);
                 //import_As(n);
             }
-            return;
         }
         
         double get_detection_modifier(double p, double r) {return p * r + (1.0 - p);}
-        size_t get_infection_node_id(size_t nid) {
+
+        template<typename RNG_T>
+        size_t get_infection_node_id(size_t nid, RNG_T& cbg) {
             double total_weight = 0.0;
             size_t chosen;
             for (size_t i = 0; i < infection_matrix.size(); i++) { total_weight += infection_matrix[nid][i]; }
-            double r = rand_uniform(0, total_weight, &rng);
+            double r = rand_uniform(0, total_weight, &cbg);
             for (size_t i = 0; i < infection_matrix.size(); i++) { 
                 if (r < infection_matrix[nid][i]) {
                     chosen = i;
@@ -333,7 +337,8 @@ class Event_Driven_NUCOVID {
             return chosen;
         }
 
-        void import_As(shared_ptr<Node> n) {
+        template<typename RNG_T>
+        void import_As(shared_ptr<Node> n, RNG_T& cbg) {
             n->state_counts[SUSCEPTIBLE]--;  // decrement susceptible groupjj
             n->state_counts[ASYMPTOMATIC]++;      // increment exposed group
 
@@ -347,24 +352,24 @@ class Event_Driven_NUCOVID {
             // time to become infectious
             Ti = Now;
             if (not det_flag) {
-                det_flag = rand_uniform(0, 1, &rng) < n->get_Pdet((int) Ti, 0) ? true : false;
+                det_flag = rand_uniform(0, 1, &cbg) < n->get_Pdet((int) Ti, 0) ? true : false;
             }
             Times.push_back(Ti);
             Ki_modifier.push_back(det_flag ? n->frac_infectiousness_det * n->frac_infectiousness_As : n->frac_infectiousness_As);
  
             // time to recovery
-            Tr = rand_exp(n->get_Krec((int) Ti, 0), &rng) + Ti;
+            Tr = rand_exp(n->get_Krec((int) Ti, 0), &cbg) + Ti;
             add_event(Tr, RECA, n, n, det_flag);
 
             // time to next contact
             int bin = 0;
-            double Tc = rand_exp(n->get_Ki((int) Ti) * Ki_modifier[bin], &rng) + Ti;
+            double Tc = rand_exp(n->get_Ki((int) Ti) * Ki_modifier[bin], &cbg) + Ti;
             while ( Tc < Tr ) {     // does contact occur before recovery?
                 // decide which node to infect
-                size_t infect_node_id = get_infection_node_id(n->id);
+                size_t infect_node_id = get_infection_node_id(n->id, cbg);
                 add_event(Tc, CON, n, nodes[infect_node_id], det_flag); // potential transmission event
                 while (bin < Times.size() - 1 and Times[bin+1] < Tc) {bin++;} // update bin if necessary
-                Tc += rand_exp(n->get_Ki((int) Tc) * Ki_modifier[bin], &rng);
+                Tc += rand_exp(n->get_Ki((int) Tc) * Ki_modifier[bin], &cbg);
             }
         }
 
@@ -490,12 +495,12 @@ class Event_Driven_NUCOVID {
             double Tc = rand_exp(n->get_Ki((int) Ti) * Ki_modifier[bin], &cbg) + Ti;
             while ( Tc < Tr ) {     // does contact occur before recovery?
                 // decide which node to infect
-                size_t infect_node_id = get_infection_node_id(n->id);
+                size_t infect_node_id = get_infection_node_id(n->id, cbg);
                 add_event(Tc, CON, n, nodes[infect_node_id], det_flag); // potential transmission event
                 while (bin < Times.size() - 1 and Times[bin+1] < Tc) {bin++;} // update bin if necessary
                 Tc += rand_exp(n->get_Ki((int) Tc) * Ki_modifier[bin], &cbg);
             }
-
+            
             // time to become susceptible again (not used for now)
             //double Ts = Tr + immunity_duration; 
             //add_event(Ts, IMM);
@@ -567,7 +572,7 @@ class Event_Driven_NUCOVID {
                     break;
                 case CON:
                     {
-                        CachedBitGenerator cbg(rng, 100);
+                        CachedBitGenerator cbg(rng, 250);
                         // std::cout << Now << ": " << rng() << std::endl;
                         // const int rand_contact = rand_uniform_int(0, event.target_node->N, &rng);
                         const int rand_contact = rand_uniform_int(0, event.target_node->N, &cbg);
@@ -575,6 +580,8 @@ class Event_Driven_NUCOVID {
                             if (not event.target_node->id == event.source_node->id) event.target_node->introduced++;
                             infect(event.target_node, cbg);
                         }
+
+                        // std::cout << Now << ": " << cbg.calls << std::endl;
                     }
                     break;
                 default:    
@@ -584,6 +591,7 @@ class Event_Driven_NUCOVID {
         }
 
         void add_event( double time, eventType type, shared_ptr<Node> sn, shared_ptr<Node> tn, bool detect) {
+            // std::cout << "evt: " << time << std::endl;
             EventQ.push( Event(time,type,sn,tn,detect) );
             return;
         }

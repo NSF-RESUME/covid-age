@@ -3,6 +3,7 @@ OBJECTS := $(patsubst %.cpp,%.o,$(SOURCES))
 DEPENDS := $(patsubst %.cpp,%.d,$(SOURCES))
 
 CXXFLAGS=--ansi --pedantic -O2 -std=c++11 
+# XXFLAGS=--ansi --pedantic -g -std=c++11
 #CFLAGS=--ansi --pedantic -g 
 INCLUDE= -I../../src/
 # LDFLAGS=  ../../src/*.o
