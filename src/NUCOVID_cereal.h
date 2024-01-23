@@ -210,7 +210,8 @@ class Event_Driven_NUCOVID {
         vector<shared_ptr<Node>> nodes;
         vector<vector<double>> infection_matrix;
         priority_queue<Event, vector<Event>, compTime > EventQ; // event queue
-        double Now;                 // Current "time" in simulation
+        double Now; // Current "time" in simulation
+        double offset;                
         mt19937 rng;              // RNG
         
         Event_Driven_NUCOVID () {};
@@ -273,7 +274,9 @@ class Event_Driven_NUCOVID {
             }
 
             double next_event_time = check_next_event_time();
-            while ( (next_event_time != -1) and (next_event_time < start_time + duration) ) {
+            // std::cout << "start_time, duration: " << start_time << ", " << duration << std::endl;
+            // std::cout << "1 Next Evt Time: " << next_event_time << std::endl;
+            while ( (next_event_time != -1) and (next_event_time < start_time + duration + offset) ) {
                 if (next_event_time > day) {
                     auto iter = seeds.find(static_cast<double>(day));
                     if (iter != seeds.end()) {
@@ -287,8 +290,15 @@ class Event_Driven_NUCOVID {
 
                 next_event();
                 next_event_time = check_next_event_time();
+                // std::cout << "Next Evt Time: " << next_event_time << std::endl;
                 continue;
             }
+            // std::cout << "2 Next Evt Time: " << next_event_time << std::endl;
+            offset = duration - Now;
+            // non-continued sims are set to start at 9, so we need
+            // to account for that.
+            if (start_time == 9.0) offset += 9.0;
+            // std::cout << duration << " " << Now << std::endl;
             print_state(out_buffer, day, print);
 
             return (*out_buffer);
@@ -302,6 +312,7 @@ class Event_Driven_NUCOVID {
         //}
 
         void reset() {
+            offset = 0.0;
             Now = 0.0;
             for (size_t i = 0; i < nodes.size(); i++) {
                 nodes[i]->reset();
@@ -598,7 +609,7 @@ class Event_Driven_NUCOVID {
 
         template<class Archive>
         void serialize(Archive & archive) {
-            archive( nodes, infection_matrix, EventQ, Now );
+            archive( nodes, infection_matrix, EventQ, Now, offset );
             archive(rng);
         }
 
