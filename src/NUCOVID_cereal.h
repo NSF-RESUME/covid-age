@@ -273,6 +273,7 @@ class Event_Driven_NUCOVID {
                 day = ceil(start_time);
             }
 
+            std::cout << "start_time, duration, offset: " << start_time << ", " << duration << ", " << offset << std::endl;
             double next_event_time = check_next_event_time();
             // std::cout << "start_time, duration: " << start_time << ", " << duration << std::endl;
             // std::cout << "1 Next Evt Time: " << next_event_time << std::endl;
@@ -294,10 +295,13 @@ class Event_Driven_NUCOVID {
                 continue;
             }
             // std::cout << "2 Next Evt Time: " << next_event_time << std::endl;
-            offset = duration - Now;
+            // offset = duration - Now
+            offset = (start_time + duration + offset) - Now;
+            std::cout << "duration, now, offset: " << duration << ", " << Now << ", " << offset << std::endl;
+
             // non-continued sims are set to start at 9, so we need
             // to account for that.
-            if (start_time == 9.0) offset += 9.0;
+            // if (start_time == 9.0) offset += 9.0;
             // std::cout << duration << " " << Now << std::endl;
             print_state(out_buffer, day, print);
 
