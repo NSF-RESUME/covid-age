@@ -16,13 +16,14 @@ source("~/work/projects/git/covid-age/R/covid_age_wrapper.R")
 covid_model <- "/lcrc/project/EMEWS/afadikar/git/covid-age/exp/chicago_yr1/model"
 
 Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+ini_Ki <- 1
 
 par_list <- list("random_seeds" = matrix(c(0, 1111), nrow = 1),
-                 "ini_Ki" = 1,
+                 "ini_Ki" = ini_Ki,
                  "Ki_ap" = Ki_ap,
                  "output_directory" = "/home/afadikar/temp",
                  "duration" = 100,
-                 "output_filename" = paste0("out_", sample(1e9, 1), ".out"))
+                 "output_filename" = "out_all.out")
 d <- run_covid_age(covid_model, par_list)
 
 ```
@@ -30,67 +31,67 @@ d <- run_covid_age(covid_model, par_list)
 #### Day 0-25 
 
 ```{r}
-Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+# Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
 par_list_25 <- list("random_seeds" = matrix(c(0, 1111), nrow = 1),
-                    "ini_Ki" = 1,
+                    "ini_Ki" = ini_Ki,
                      "Ki_ap" = Ki_ap,
                      "output_directory" = "/home/afadikar/temp",
                      "duration" = 25,
-                     "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+                     "output_filename" = "out_1.out",
                     "save_to" = "/home/afadikar/temp/check1")
 d_25 <- run_covid_age(covid_model, par_list_25)
 
 common_time <- 9:25
-d[time %in% common_time, E] - d_25[time %in% common_time, E]
+d[time %in% common_time, HOS] - d_25[time %in% common_time, HOS]
 ```
 
 #### Day 26-50
 
 ```{r}
-Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+# Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
 par_list_50 <- list("random_seeds" = matrix(c(0, -1), nrow = 1),
-                    "ini_Ki" = 1,
+                    "ini_Ki" = ini_Ki,
                      "Ki_ap" = Ki_ap,
                      "output_directory" = "/home/afadikar/temp",
                      "duration" = 25,
-                     "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+                     "output_filename" = "out_2.out",
                     "restore_from" = "/home/afadikar/temp/check1",
                     "save_to" = "/home/afadikar/temp/check2")
 d_50 <- run_covid_age(covid_model, par_list_50)
 common_time <- 26:50
-d[time %in% common_time, E] - d_50[time %in% common_time, E]
+d[time %in% common_time, HOS] - d_50[time %in% common_time, HOS]
 ```
 
 #### Day 51-75
 
 ```{r}
-Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+# Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
 par_list_75 <- list("random_seeds" = matrix(c(0, -1), nrow = 1),
-                    "ini_Ki" = 1,
+                    "ini_Ki" = ini_Ki,
                      "Ki_ap" = Ki_ap,
                      "output_directory" = "/home/afadikar/temp",
                      "duration" = 25,
-                     "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+                     "output_filename" = "out_3.out",
                     "restore_from" = "/home/afadikar/temp/check2",
                     "save_to" = "/home/afadikar/temp/check3")
 d_75 <- run_covid_age(covid_model, par_list_75)
 common_time <- 51:75
-d[time %in% common_time, E] - d_75[time %in% common_time, E]
+d[time %in% common_time, HOS] - d_75[time %in% common_time, HOS]
 ```
 
 #### Day 76-100
 
 ```{r}
-Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
-par_list_100 <- list("random_seeds" = matrix(c(0, 1111), nrow = 1),
-                    "ini_Ki" = 1,
+# Ki_ap <- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+par_list_100 <- list("random_seeds" = matrix(c(0, -1), nrow = 1),
+                    "ini_Ki" = ini_Ki,
                      "Ki_ap" = Ki_ap,
                      "output_directory" = "/home/afadikar/temp",
                      "duration" = 25,
-                     "output_filename" = paste0("out_", sample(1e9, 1), ".out"),
+                     "output_filename" = "out_4.out",
                     "restore_from" = "/home/afadikar/temp/check3",
                     "save_to" = "/home/afadikar/temp/check4")
 d_100 <- run_covid_age(covid_model, par_list_100)
 common_time <- 76:100
-d[time %in% common_time, E] - d_100[time %in% common_time, E]
+d[time %in% common_time, HOS] - d_100[time %in% common_time, HOS]
 ```

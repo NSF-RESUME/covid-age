@@ -1633,78 +1633,78 @@ Covid-age.</p>
 covid_model &lt;- &quot;/lcrc/project/EMEWS/afadikar/git/covid-age/exp/chicago_yr1/model&quot;
 
 Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+ini_Ki &lt;- 1
 
 par_list &lt;- list(&quot;random_seeds&quot; = matrix(c(0, 1111), nrow = 1),
-                 &quot;ini_Ki&quot; = 1,
+                 &quot;ini_Ki&quot; = ini_Ki,
                  &quot;Ki_ap&quot; = Ki_ap,
                  &quot;output_directory&quot; = &quot;/home/afadikar/temp&quot;,
                  &quot;duration&quot; = 100,
-                 &quot;output_filename&quot; = paste0(&quot;out_&quot;, sample(1e9, 1), &quot;.out&quot;))
+                 &quot;output_filename&quot; = &quot;out_all.out&quot;)
 d &lt;- run_covid_age(covid_model, par_list)</code></pre>
 <div id="day-0-25" class="section level4">
 <h4>Day 0-25</h4>
-<pre class="r"><code>Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+<pre class="r"><code># Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
 par_list_25 &lt;- list(&quot;random_seeds&quot; = matrix(c(0, 1111), nrow = 1),
-                    &quot;ini_Ki&quot; = 1,
+                    &quot;ini_Ki&quot; = ini_Ki,
                      &quot;Ki_ap&quot; = Ki_ap,
                      &quot;output_directory&quot; = &quot;/home/afadikar/temp&quot;,
                      &quot;duration&quot; = 25,
-                     &quot;output_filename&quot; = paste0(&quot;out_&quot;, sample(1e9, 1), &quot;.out&quot;),
+                     &quot;output_filename&quot; = &quot;out_1.out&quot;,
                     &quot;save_to&quot; = &quot;/home/afadikar/temp/check1&quot;)
 d_25 &lt;- run_covid_age(covid_model, par_list_25)
 
 common_time &lt;- 9:25
-d[time %in% common_time, E] - d_25[time %in% common_time, E]</code></pre>
+d[time %in% common_time, HOS] - d_25[time %in% common_time, HOS]</code></pre>
 <pre><code>##  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></pre>
 </div>
 <div id="day-26-50" class="section level4">
 <h4>Day 26-50</h4>
-<pre class="r"><code>Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+<pre class="r"><code># Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
 par_list_50 &lt;- list(&quot;random_seeds&quot; = matrix(c(0, -1), nrow = 1),
-                    &quot;ini_Ki&quot; = 1,
+                    &quot;ini_Ki&quot; = ini_Ki,
                      &quot;Ki_ap&quot; = Ki_ap,
                      &quot;output_directory&quot; = &quot;/home/afadikar/temp&quot;,
                      &quot;duration&quot; = 25,
-                     &quot;output_filename&quot; = paste0(&quot;out_&quot;, sample(1e9, 1), &quot;.out&quot;),
+                     &quot;output_filename&quot; = &quot;out_2.out&quot;,
                     &quot;restore_from&quot; = &quot;/home/afadikar/temp/check1&quot;,
                     &quot;save_to&quot; = &quot;/home/afadikar/temp/check2&quot;)
 d_50 &lt;- run_covid_age(covid_model, par_list_50)
 common_time &lt;- 26:50
-d[time %in% common_time, E] - d_50[time %in% common_time, E]</code></pre>
+d[time %in% common_time, HOS] - d_50[time %in% common_time, HOS]</code></pre>
 <pre><code>##  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></pre>
 </div>
 <div id="day-51-75" class="section level4">
 <h4>Day 51-75</h4>
-<pre class="r"><code>Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+<pre class="r"><code># Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
 par_list_75 &lt;- list(&quot;random_seeds&quot; = matrix(c(0, -1), nrow = 1),
-                    &quot;ini_Ki&quot; = 1,
+                    &quot;ini_Ki&quot; = ini_Ki,
                      &quot;Ki_ap&quot; = Ki_ap,
                      &quot;output_directory&quot; = &quot;/home/afadikar/temp&quot;,
                      &quot;duration&quot; = 25,
-                     &quot;output_filename&quot; = paste0(&quot;out_&quot;, sample(1e9, 1), &quot;.out&quot;),
+                     &quot;output_filename&quot; = &quot;out_3.out&quot;,
                     &quot;restore_from&quot; = &quot;/home/afadikar/temp/check2&quot;,
                     &quot;save_to&quot; = &quot;/home/afadikar/temp/check3&quot;)
 d_75 &lt;- run_covid_age(covid_model, par_list_75)
 common_time &lt;- 51:75
-d[time %in% common_time, E] - d_75[time %in% common_time, E]</code></pre>
-<pre><code>##  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 7</code></pre>
+d[time %in% common_time, HOS] - d_75[time %in% common_time, HOS]</code></pre>
+<pre><code>##  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></pre>
 </div>
 <div id="day-76-100" class="section level4">
 <h4>Day 76-100</h4>
-<pre class="r"><code>Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
-par_list_100 &lt;- list(&quot;random_seeds&quot; = matrix(c(0, 1111), nrow = 1),
-                    &quot;ini_Ki&quot; = 1,
+<pre class="r"><code># Ki_ap &lt;- rbind(c(0, .4), c(34, 0.3), c(55, 0.25), c(80, 0.1))
+par_list_100 &lt;- list(&quot;random_seeds&quot; = matrix(c(0, -1), nrow = 1),
+                    &quot;ini_Ki&quot; = ini_Ki,
                      &quot;Ki_ap&quot; = Ki_ap,
                      &quot;output_directory&quot; = &quot;/home/afadikar/temp&quot;,
                      &quot;duration&quot; = 25,
-                     &quot;output_filename&quot; = paste0(&quot;out_&quot;, sample(1e9, 1), &quot;.out&quot;),
+                     &quot;output_filename&quot; = &quot;out_4.out&quot;,
                     &quot;restore_from&quot; = &quot;/home/afadikar/temp/check3&quot;,
                     &quot;save_to&quot; = &quot;/home/afadikar/temp/check4&quot;)
 d_100 &lt;- run_covid_age(covid_model, par_list_100)
 common_time &lt;- 76:100
-d[time %in% common_time, E] - d_100[time %in% common_time, E]</code></pre>
-<pre><code>##  [1]  -49    7   23 -106    3  -24   58   11  -35  178  386  230  196   94   74
-## [16]  216   43 -225 -137  -18 -283 -202    5 -243 -246</code></pre>
+d[time %in% common_time, HOS] - d_100[time %in% common_time, HOS]</code></pre>
+<pre><code>##  [1] 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</code></pre>
 </div>
 </div>
 
