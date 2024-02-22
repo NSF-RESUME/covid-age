@@ -276,7 +276,7 @@ int parse_params(nlohmann::json& params, const std::string& cl_params, UserProvi
     upr.frac_as = j2.contains("frac_infectiousness_As");
     upr.frac_det = j2.contains("frac_infectiousness_det");
     upr.ini_ki = j2.contains("ini_Ki");
-    upr.ki_ap = j2.contains("Ki_app");
+    upr.ki_ap = j2.contains("Ki_ap");
 
     for (auto& el : j2.items()) {
         string key = el.key();
